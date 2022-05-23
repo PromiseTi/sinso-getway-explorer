@@ -14,25 +14,21 @@
             Test Network
           </p>
         </div>
-        <div
+        <el-button
           type="text"
           class="fontsix"
-          @click="goHome(!odd1 ? 'newIndex' : 'index')"
-          :class="
-            ['index', 'newIndex'].includes($route.name) ? 'ColoTexts' : 'texts'
-          "
+          @click="goHome('index')"
+          :class="$route.name === 'index' ? 'ColoTexts' : 'texts'"
+          >Overview</el-button
         >
-          {{ !odd1 ? 'Overview(old)' : 'Overview(new)' }}
-          <i class="el-icon-caret-bottom caest"></i>
-          <el-button
-            plain
-            class="buAbs"
-            @click.stop="goHome(odd1 ? 'index' : 'newIndex')"
-          >
-            {{ odd1 ? 'Overview(old)' : 'Overview(new)' }}
-          </el-button>
-        </div>
-        <div
+        <el-button
+          type="text"
+          class="fontsix"
+          @click="goHome('node')"
+          :class="$route.name === 'node' ? 'ColoTexts' : 'texts'"
+          >Node</el-button
+        >
+        <!-- <div
           type="text"
           class="fontsix"
           @click="goHome(!odd2 ? 'newNode' : 'node')"
@@ -49,7 +45,7 @@
           >
             {{ odd2 ? 'Node(old)' : 'Node(new)' }}
           </el-button>
-        </div>
+        </div> -->
 
         <el-button
           class="fontsix"

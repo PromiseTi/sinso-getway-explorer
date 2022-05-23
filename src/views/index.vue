@@ -54,75 +54,6 @@
         save
       </el-button>
     </el-dialog>
-    <!-- Tips -->
-    <el-dialog
-      :visible.sync="isNotice"
-      width="1023px"
-      center
-      :show-close="false"
-      class="dialogs"
-    >
-      <div class="notice">
-        <div class="content colorText align-center flex flex-direction">
-          <img
-            class="noticeIcon"
-            src="../assets/img-gonggao.png"
-            alt=""
-            srcset=""
-          />
-          <h2
-            class="fontSize-20 margin-top-sm margin-bottom fontBlod colorTitle"
-          >
-            Notice
-          </h2>
-          <div class="lineHeight fontSize-14">
-            <p>
-              Due to the congestion of BSC test chain access, SINSO has decided
-              to build its own network Ssc, so everyone needs
-            </p>
-            <p>to switch to Ssc (test network) to continue node mining.</p>
-            <p>
-              1. The BSC test chain mining will stop running at 2022.03.13 24:00
-              (UTC+8)
-            </p>
-            <p>
-              2. After the operation is stopped, the user will first settle the
-              previous income (including the pledged currency), and
-            </p>
-            <p>
-              we will issue the same amount of Tsinso rewards on the new network
-              (Ssc test network).
-            </p>
-            <p>
-              3. Reward settlement time: 2022.03.14 00:00 to 2022.04.15 24:00
-              (UTC+8)
-            </p>
-            <p>4. New network access start time: 2022.03.14 12:00 (UTC+8)</p>
-            <p>
-              5. The new network officially starts mining time: 2022.03.17 12:00
-              (UTC+8)
-            </p>
-          </div>
-          <p class="margin-top margin-bottom-sm">Old network stop countdown</p>
-          <div class="timeRender">
-            <span class="buleCircle">{{ time.days || '00' }}</span>
-            <span>days</span>
-            <span class="buleCircle">{{ time.hours || '00' }}</span>
-            <span>hours</span>
-            <span class="buleCircle">{{ time.mins || '00' }}</span>
-            <span>mins</span>
-            <span class="buleCircle">{{ time.seconds || '00' }}</span>
-            <span>seconds</span>
-          </div>
-          <el-button
-            type="primary"
-            class="margin-top buttWid"
-            @click="isNotice = false"
-            >Confirm</el-button
-          >
-        </div>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -130,14 +61,12 @@
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import TopBar from '../components/topBar'
-var dayjs = require('dayjs')
 export default {
   name: '',
   components: { TopBar },
   props: {},
   data() {
     return {
-      isNotice: false,
       time: { days: 0, hours: 0, mins: 0, seconds: 0 },
       poolInfo: '',
       isTimes: false,
@@ -162,12 +91,6 @@ export default {
       if (value) {
         this.isTimes = false
         this.isLoading = false
-        if (!sessionStorage.getItem('isNotice')) {
-          this.isInst = 1
-          this.setIng()
-          this.isNotice = true
-          sessionStorage.setItem('isNotice', true)
-        }
       }
     },
   },
@@ -176,8 +99,8 @@ export default {
       if (!this.mineInstance) {
         let web3 = this.web3
         this.mineInstance = new web3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_OLD_MINE_CONTRACT_ABI),
-          process.env.VUE_APP_OLD_MINE_CONTRACT_ADDRESS
+          JSON.parse(process.env.VUE_APP_NEW_MINE_CONTRACT_ABI),
+          process.env.VUE_APP_NEW_MINE_CONTRACT_ADDRESS
         )
       }
       return this.mineInstance
@@ -185,7 +108,6 @@ export default {
     async getPoolInfo() {
       this.timing()
       let poolInfo = await this.getMineInstance().methods.getPoolInfo().call()
-
       this.list1[0].uv = poolInfo[0]
       this.list1[1].uv = poolInfo[1]
       this.list1[2].uv = poolInfo[2]
@@ -210,41 +132,16 @@ export default {
         }
       }, 45000)
     },
-    setIng() {
-      this.times = setInterval(
-        () => {
-          this.isInst = 0
-          const date2 = dayjs(dayjs().format('YYYY-MM-DD HH:mm:ss'))
-          const date1 = dayjs('2022-03-13 24:00:00')
-          let second = date1.diff(date2, 'second') // 20214000000 default milliseconds
-          if (second > 0) {
-            let days = Math.floor(second / 86400)
-            let hours = Math.floor((second % 86400) / 3600)
-            let mins = Math.floor(((second % 86400) % 3600) / 60)
-            let seconds = Math.floor(((second % 86400) % 3600) % 60)
-            days = days < 10 ? '0' + days : days
-            hours = hours < 10 ? '0' + hours : hours
-            mins = mins < 10 ? '0' + mins : mins
-            seconds = seconds < 10 ? '0' + seconds : seconds
-            this.time = { days, hours, mins, seconds }
-          } else {
-            this.time = { days: '00', hours: '00', mins: '00', seconds: '00' }
-            setInterval(this.times)
-          }
-        },
-        this.isInst == 1 ? 0 : 1000
-      )
-    },
     switchCli() {
       let web3 = new Web3(
-        new Web3.providers.HttpProvider(process.env.VUE_APP_RAW_URL)
+        new Web3.providers.HttpProvider(process.env.VUE_APP_TARGET_CHAIN_URL)
       )
       this.web3 = web3
       this.getPoolInfo()
     },
   },
   created() {
-    let val = false
+    let val = true
     this.$store.commit('modifyOdd1', { val })
     this.switchCli()
   },
