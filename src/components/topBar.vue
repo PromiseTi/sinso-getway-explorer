@@ -211,19 +211,19 @@ export default {
     }
     let { name } = this.$route
     let {
-      VUE_APP_DEFAULT_CHAIN: child_old,
-      VUE_APP_DEFAULT_CHAIN_ID: child_old_Id,
       VUE_APP_DEFAULT_NEW_CHAIN: child_new,
       VUE_APP_DEFAULT_NEW_CHAIN_ID: child_new_Id,
     } = process.env
-    if (['node', 'settle'].includes(name)) {
-      this.chain = child_old
-      this.chainId = child_old_Id
-    } else {
-      this.chain = child_new
-      this.chainId = child_new_Id
-    }
-    if (this.textText && ['node', 'settle', 'newNode'].includes(name)) {
+    this.chainId = child_new_Id
+    this.chain = child_new
+    // if (['node', 'settle'].includes(name)) {
+    //   this.chain = child_old
+    //   this.chainId = child_old_Id
+    // } else {
+    //   this.chain = child_new
+    //   this.chainId = child_new_Id
+    // }
+    if (this.textText && ['node', 'settle'].includes(name)) {
       this.switchChain('data')
     }
     setTimeout(() => {
