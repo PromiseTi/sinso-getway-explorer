@@ -92,7 +92,7 @@
 </template>
 
 <script>
-import Web3 from 'web3'
+// import Web3 from 'web3'
 export default {
   name: '',
   components: {},
@@ -106,6 +106,10 @@ export default {
     }
   },
   watch: {
+    '$store.state.address'() {
+      let { address } = this.$store.state
+      address && window.localStorage.setItem('lock_address', address)
+    },
     textText(val) {
       if (val) {
         this.valVal = val.slice(0, 5) + '......' + val.slice(37, 43)
@@ -130,7 +134,8 @@ export default {
     },
 
     async connectCli() {
-      await this.checkChain()
+      await this.accountConnect()
+      await this.chainCont()
       let { name } = this.$route
       if (['node', 'newNode', 'settle'].includes(name)) {
         this.$emit('onneCli')
@@ -143,24 +148,42 @@ export default {
       } else if (command === 'logout') {
         this.textText = ''
         window.textText = ''
+        this.$store.commit('replaceAdd', { address: '' })
+        window.localStorage.clear()
         this.$message.success('Disconnect MetaMask Success!')
         this.$emit('clearCl')
       }
     },
-    addChain() {
-      let defaultChainJSON = JSON.parse(this.chain)
-      window.ethereum
-        .request({
-          method: 'wallet_addEthereumChain',
-          params: defaultChainJSON,
-        })
-        .then(() => {
-          this.$message.success('Connect MetaMask Success!')
-        })
-        .catch(() => {
-          this.$message.error('Failed to add a default network to MetaMask!')
-        })
-    },
+    // addChain() {
+    //   let defaultChainJSON = JSON.parse(this.chain)
+    //   window.ethereum
+    //     .request({
+    //       method: 'wallet_addEthereumChain',
+    //       params: defaultChainJSON,
+    //     })
+    //     .then(() => {
+    //       this.$message.success('Connect MetaMask Success!')
+    //     })
+    //     .catch(() => {
+    //       this.$message.error('Failed to add a default network to MetaMask!')
+    //     })
+    // },
+    //     switchChain(type) {
+    //   let defaultChainId = Web3.utils.numberToHex(this.chainId)
+    //   window.ethereum
+    //     .request({
+    //       method: 'wallet_switchEthereumChain',
+    //       params: [{ chainId: defaultChainId }],
+    //     })
+    //     .then(() => {
+    //       !type && this.$message.success('Connect MetaMask Success!')
+    //     })
+    //     .catch((err) => {
+    //       if (err.code === 4902) {
+    //         this.addChain()
+    //       }
+    //     })
+    // },
     async watchToken() {
       try {
         let defaultTokenJSON = JSON.parse(process.env.VUE_APP_DEFAULT_TOKEN)
@@ -173,37 +196,28 @@ export default {
         this.$message.error('Failed to add a default token to default network!')
       }
     },
-    switchChain(type) {
-      let defaultChainId = Web3.utils.numberToHex(this.chainId)
-      window.ethereum
-        .request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: defaultChainId }],
-        })
-        .then(() => {
-          !type && this.$message.success('Connect MetaMask Success!')
-        })
-        .catch((err) => {
-          if (err.code === 4902) {
-            this.addChain()
-          }
-        })
-    },
-    async checkChain() {
-      // Worthless
-      this.checkMetaMaskExtension()
-      // Worthless
-      this.accountAuthorization()
-      this.switchChain()
-    },
+
+    // async checkChain() {
+    //   // Worthless
+    //   this.accountAuthorization()
+    //   this.switchChain()
+    // },
   },
-  created() {},
-  mounted() {
+  created() {
+    let address = window.localStorage.getItem('lock_address')
+    if (!this.$store.state.address && address) {
+      this.textText = address
+      window.textText = address
+      this.$store.commit('replaceAdd', { address })
+    }
+  },
+  async mounted() {
     let that = this
     this.textText = window.textText
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', function (accounts) {
         let account = accounts[0]
+        that.$store.commit('replaceAdd', { address: accounts })
         window.textText = account
         that.textText = account
         that.$emit('onneCli')
@@ -223,8 +237,9 @@ export default {
     //   this.chain = child_new
     //   this.chainId = child_new_Id
     // }
-    if (this.textText && ['node', 'settle'].includes(name)) {
-      this.switchChain('data')
+    if (this.textText && ['node'].includes(name)) {
+      // this.switchChain('data')
+      await this.chainCont()
     }
     setTimeout(() => {
       this.odd1 = this.$store.state.odd1 || false

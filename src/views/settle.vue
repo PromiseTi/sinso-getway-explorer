@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TopBar @onneCli="getProinfo" @clearCl="clear" />
+    <TopBar />
     <div class="settle">
       <div class="backCCC">
         <div class="minCont marlrAuto padding-tb-xl" v-if="!isSettlement">
@@ -36,101 +36,101 @@
           </h3>
         </div>
       </div>
-      <div v-if="textText">
+      <div
+        v-if="address && objOb.SscNodeRevenue && objOb.SscNodeRevenue.length"
+      >
         <div
-          class="minCont marlrAuto margin-top-xl fontSize-12"
+          class="minCont marlrAuto margin-bottom-xl margin-top-xl fontSize-12 backCCC padding-sm"
           v-if="!isSettlement"
         >
-          <p class="flexCont">
+          <p class="flexCont margin-bottom-sm">
             <span>Node Adress</span>
-            <span>{{ minerDetail.address || textText }}</span>
+            <span>{{ address || '-' }}</span>
           </p>
-          <p class="flexCont addition">
-            <span>Staked</span>
-            <span>
-              <span class="margin-right" v-if="!isTus">{{
-                minerDetail.address ? minerDetail.deposits : 'loading'
-              }}</span
-              >TSINSO</span
-            >
-          </p>
-          <p class="flexCont">
+          <h2 class="margin-bottom-xs">BSC(Test chain)</h2>
+          <p class="flexCont margin-bottom-sm">
             <span>Total Node Revenue</span>
             <span>
-              <span class="margin-right" v-if="!isTus">
-                {{
-                  minerDetail.address ? minerDetail.totalAwards : 'loading'
-                }}</span
+              <span class="margin-right">
+                {{ objOb.BscNodeRevenue || '-' }}</span
               >TSINSO</span
             >
           </p>
-          <p class="flexCont addition">
-            <span>Lock-up Rewards</span>
+          <h2 class="margin-bottom-xs">SSC(Test chain)</h2>
+          <p class="flexCont margin-bottom-sm">
+            <span>Test chain</span>
             <span>
-              <span class="margin-right" v-if="!isTus">
-                {{
-                  minerDetail.address ? minerDetail.lockedAwards : 'loading'
-                }}</span
+              <span class="margin-right">
+                {{ objOb.SscNodeRevenue || '-' }}</span
               >TSINSO</span
             >
           </p>
-          <p class="flexCont">
-            <span>Cashable Rewards</span>
+          <p class="flexCont margin-bottom-sm">
+            <span>Total</span>
             <span>
-              <span class="margin-right" v-if="!isTus">
-                {{
-                  minerDetail.address ? minerDetail.cashableAwards : 'loading'
-                }}</span
-              >TSINSO</span
-            >
-          </p>
-          <p class="flexCont addition">
-            <span>Cashed Rewards</span>
-            <span>
-              <span class="margin-right" v-if="!isTus">
-                {{
-                  minerDetail.address ? minerDetail.withdrawnAwards : 'loading'
-                }}</span
+              <span class="margin-right"> {{ objOb.Total || '-' }}</span
               >TSINSO</span
             >
           </p>
           <p class="flexCont">
             <span>Total settlement</span>
             <span>
-              <span class="margin-right" v-if="!isTus">
-                {{
-                  minerDetail.address ? minerDetail.totalNums : 'loading'
-                }}</span
+              <span class="margin-right">
+                {{ objOb.TotalSettlement || '-' }}</span
               >TSINSO</span
             >
           </p>
           <div class="flex justify-end margin-tb-xl">
+            <!-- 结算 -->
             <el-button
               class="buttWid"
-              v-if="isChoise == 1"
+              v-if="
+                objOb.BscSettlementStatus == 0 || objOb.SscSettlementStatus == 0
+              "
               @click="openDialog"
               type="primary"
               round
               >Settle accounts
             </el-button>
+            <!-- 结算中 -->
             <el-button
+              v-else-if="
+                objOb.BscSettlementStatus == 1 && objOb.SscSettlementStatus == 1
+              "
               class="buttWid"
               disabled
-              v-else-if="isChoise == 2"
+              type="info"
+              round
+              >In settlement
+            </el-button>
+            <!-- 已经结算完成 -->
+            <el-button
+              v-else-if="
+                objOb.BscSettlementStatus == 2 && objOb.SscSettlementStatus == 2
+              "
+              class="buttWid"
+              disabled
               type="info"
               round
               >Settled
             </el-button>
+            <!-- 无收益 -->
             <el-button
+              v-else-if="
+                objOb.BscSettlementStatus == 3 && objOb.SscSettlementStatus == 3
+              "
               class="buttWid"
               disabled
-              v-else-if="isChoise == 0"
               type="info"
               round
-              >Not Start
+              >No income
             </el-button>
+            <!-- 查询  未结算 已结算-->
             <el-button
-              v-if="minerDetail"
+              v-if="
+                [0, 2].includes(objOb.BscSettlementStatus) &&
+                [0, 2].includes(objOb.SscSettlementStatus)
+              "
               class="buttWid"
               type="primary"
               round
@@ -142,21 +142,35 @@
         <div class="minCont marlrAuto margin-top-xl fontSize-12" v-else>
           <p class="flexCont">
             <span>Node Adress</span>
-            <span>{{ minerDetail.address }}</span>
+            <span>{{ address || '-' }}</span>
           </p>
           <p class="flexCont addition">
             <span>Total settlement</span>
             <span>
-              <span class="margin-right">{{ minerDetail.totalNums }}</span
+              <span class="margin-right">
+                {{ objOb.TotalSettlement || '-' }}</span
               >TSINSO</span
             >
           </p>
           <p class="flexCont margin-bottom">
             <span>State</span>
-            <span v-if="isChoise == 1" class="colBlue">Unsettled</span>
-            <span v-else-if="isChoise == 0" class="colorFail">Not Start</span>
-            <span v-else class="colBlue">Settled</span>
-            <!-- <span v-else-if="inSuccess == 0" class="colorFail">settled</span> -->
+            <!-- 未开始
+            <span v-if="isChoise == 1" class="colBlue">Unsettled</span> -->
+            <!-- 待定 -->
+            <span
+              v-if="
+                objOb.BscSettlementStatus == 0 || objOb.SscSettlementStatus == 0
+              "
+              class="colBlue"
+              >Unsettled</span
+            >
+            <span
+              v-else-if="
+                objOb.BscSettlementStatus == 2 && objOb.SscSettlementStatus == 2
+              "
+              class="colBlue"
+              >Settled</span
+            >
           </p>
           <p class="fontSize-14 margin-top margin-bottom-sm">
             Please go to the new network to check the wallet balance
@@ -249,19 +263,17 @@
 <script>
 import Web3 from 'web3'
 import TopBar from '../components/topBar'
-
+import api from '@/api/index'
 export default {
   data() {
     return {
-      textText: '',
+      address: '',
+      objOb: {},
+      isSettlement: false, // 是否是结算完成后的状态
       settleStatus: false, // el-dialog
       inSuccess: 0, // 1 suress 2 loading...   0 error
-      isSettlement: false, // 是否是结算完成后的状态
-      isChoise: 0, // Query button  0 null  1 Can settle   2 Settled
-      isTus: false, // no data
-      targetWeb3: '', //{}
-      sourceWeb: '', //{}
-      minerDetail: '', //{}
+      hxi1: '', // 哈希
+      hxi2: '',
       tableData: [
         {
           date: 'Chain name',
@@ -288,162 +300,140 @@ export default {
   },
   components: { TopBar },
   methods: {
+    init() {
+      this.objOb = {}
+      api
+        .$nodeRevenueInfo({
+          nodeAddress: this.address,
+        })
+        .then((res) => {
+          if (res.error_code == 0) {
+            this.objOb = res.data
+          }
+        })
+    },
     async openDialog() {
-      let encodeAbi = this.getOldInstance().methods.confirmProfits().encodeABI()
-      const transactionParameters = {
-        to: process.env.VUE_APP_CONFIRM_CONTRACT_ADDRESS,
-        from: this.textText,
-        data: encodeAbi,
+      let { SscSettlementStatus, BscSettlementStatus } = this.objOb
+      if (SscSettlementStatus == 0) {
+        await this.chainCont()
+        this.hxi1 = await this.sscTransaction()
       }
-      let txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [transactionParameters],
-      })
-      console.log(txHash)
-      this.settleStatus = true
-      this.inSuccess = 2
-      this.isChoise = 2
-      this.times = setInterval(async () => {
-        this.fitsInfo = await this.getOldInstance()
-          .methods.profitInfo(this.textText)
-          .call()
-        if (this.fitsInfo.state == 3) {
-          this.inSuccess = 1
-          clearInterval(this.times)
-        } else if (this.fitsInfo.state > 3) {
-          this.inSuccess = 0
-          clearInterval(this.times)
-        }
-      }, 3000)
-    },
-    getOldInstance() {
-      if (!this.mineOldInstance) {
-        let sourceWeb3 = this.sourceWeb3
-        this.mineOldInstance = new sourceWeb3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_CONFIRM_CONTRACT_ABI),
-          process.env.VUE_APP_CONFIRM_CONTRACT_ADDRESS
-        )
+      if (BscSettlementStatus == 0) {
+        await this.chainCont(1)
+        this.hxi2 = await this.sscTransaction()
       }
-      return this.mineOldInstance
-    },
-    getNewInstance() {
-      if (!this.mineNewInstance) {
-        let targetWeb3 = this.targetWeb3
-        this.mineNewInstance = new targetWeb3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_CLAIM_CONTRACT_ABI),
-          process.env.VUE_APP_CLAIM_CONTRACT_ADDRESS
-        )
-      }
-      return this.mineNewInstance
-    },
-    async getProinfo() {
-      this.clear()
-      this.textText = await this.getAccount()
-      let proInfo = await this.getOldInstance()
-        .methods.profitInfo(this.textText)
-        .call()
-      this.updateMinerInfo(this.textText)
-      let poolStatus = await this.getPoolStatus()
-      if (poolStatus) {
-        this.isChoise = 0
+      // eslint-disable-next-line no-unused-vars
+      let url
+      // eslint-disable-next-line no-unused-vars
+      let hxHx
+      if (this.hxi2) {
+        url = process.env.VUE_APP_RAW_URL
+        hxHx = this.hxi2
       } else {
-        if (proInfo.state <= 1) {
-          this.isChoise = 1
-        } else if (['3', '4'].includes(proInfo.state)) {
-          this.isChoise = 2
-          this.inSuccess = 1
-        } else if (proInfo.state == 2) {
-          this.isChoise = 0
-        }
+        url = process.env.VUE_APP_TARGET_CHAIN_URL
+        hxHx = this.hxi1
+      }
+      this.inSuccess = 2
+      this.settleStatus = true
+      let { status: status1 = '0x0' } = await this.getReceipt(hxHx, url)
+      console.log(status1)
+      if (status1 == '0x1') {
+        // console.log('调用合约成功')
+        this.inSuccess = 1
+      } else {
+        // console.log('调用合约失败')
+        this.inSuccess = 0
       }
     },
-    clear() {
-      this.isTus = false
-      this.isChoise = 0
-      this.textText = ''
-      this.minerDetail = ''
-      this.isSettlement = false
-    },
-    async updateMinerInfo(account) {
-      let minerInfo = await this.getMineInstance()
-        .methods.getMinerInfo(account)
-        .call()
-      let totalNums = this.jiaNumber(
-        this.numberHandle(minerInfo[2]),
-        this.numberHandle(minerInfo[3])
-      )
-      this.minerDetail = {
-        address: account,
-        deposits: this.numberHandle(minerInfo[2]),
-        totalAwards: this.numberHandle(minerInfo[3]),
-        withdrawnAwards: this.numberHandle(minerInfo[4]),
-        lockedAwards: this.numberHandle(minerInfo[5]),
-        cashableAwards: this.numberHandle(minerInfo[6]),
-        totalNums,
+    async sscTransaction() {
+      let encode = await this.getSscInstance()
+        .methods.confirmProfits()
+        .encodeABI()
+      var tx = {
+        from: this.$store.state.address,
+        gas: '40000',
+        to: process.env.VUE_APP_SOURCE_SSC_ADDRESS,
+        data: encode,
+      }
+      try {
+        return window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [tx],
+        })
+      } catch (err) {
+        throw new Error(err)
       }
     },
-    getMineInstance() {
-      if (!this.mineInstance) {
-        let web3 = this.targetWeb3
-        this.mineInstance = new web3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_OLD_MINE_CONTRACT_ABI),
-          process.env.VUE_APP_OLD_MINE_CONTRACT_ADDRESS
+    async bscTransaction() {
+      let encode = await this.getBscInstance()
+        .methods.confirmProfits()
+        .encodeABI()
+      var tx = {
+        from: this.$store.state.address,
+        gas: '40000',
+        to: process.env.VUE_APP_SOURCE_BSC_ADDRESS,
+        data: encode,
+      }
+      try {
+        return window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [tx],
+        })
+      } catch (err) {
+        throw new Error(err)
+      }
+    },
+    getSscInstance() {
+      if (!this.sscInstance) {
+        let web3 = this.web3
+        this.sscInstance = new web3.eth.Contract(
+          JSON.parse(process.env.VUE_APP_PROFIT_CONFIRM_ABI),
+          process.env.VUE_APP_SOURCE_SSC_ADDRESS
         )
       }
-      return this.mineInstance
+      return this.sscInstance
     },
-    async getAccount() {
-      let accountList = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      })
-      return accountList[0]
-    },
-    getPoolExpireInstance() {
-      if (!this.poolExpireInstance) {
-        let web3 = this.sourceWeb3
-        this.poolExpireInstance = new web3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_OLD_POOL_ABI),
-          process.env.VUE_APP_OLD_POOL_CONTRACT_ADDRESS
+    getBscInstance() {
+      if (!this.bscInstance) {
+        let web3 = this.bscWeb3
+        this.bscInstance = new web3.eth.Contract(
+          JSON.parse(process.env.VUE_APP_PROFIT_CONFIRM_ABI),
+          process.env.VUE_APP_SOURCE_BSC_ADDRESS
         )
       }
-      return this.poolExpireInstance
-    },
-    async getPoolStatus() {
-      let poolStatus = await this.getPoolExpireInstance()
-        .methods.getStatus(0)
-        .call()
-      return poolStatus
+      return this.bscInstance
     },
   },
   watch: {
-    settleStatus(val) {
-      if (!val) {
-        this.getProinfo()
-        clearInterval(this.times)
-      }
+    // eslint-disable-next-line no-dupe-keys
+    '$store.state.address': {
+      async handler(val) {
+        this.address = val
+        val && this.init()
+      },
+      immediate: true,
     },
-    textText(val) {
+    settleStatus(val) {
+      // 弹窗关闭时
       if (!val) {
-        this.isSettlement = false
+        this.hxi1 = ''
+        this.hxi2 = ''
+        this.init()
       }
     },
   },
   created() {
-    let sourceWeb3 = new Web3(
-      new Web3.providers.HttpProvider(process.env.VUE_APP_SOURCE_CHAIN_URL)
+    let web3 = new Web3(
+      new Web3.providers.HttpProvider(process.env.VUE_APP_TARGET_CHAIN_URL)
     )
-    this.sourceWeb3 = sourceWeb3
+    this.web3 = web3
 
-    let targetWeb3 = new Web3(
+    let bscWeb3 = new Web3(
       new Web3.providers.HttpProvider(process.env.VUE_APP_RAW_URL)
     )
-    this.targetWeb3 = targetWeb3
+    this.bscWeb3 = bscWeb3
   },
-  mounted() {
-    if (window.textText) {
-      this.getProinfo()
-    }
-  },
+  mounted() {},
 }
 </script>
 
@@ -481,7 +471,7 @@ export default {
 .flexCont {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 2px;
+  /* margin-bottom: 20px; */
   padding: 20px;
   background-color: #ecf2f4;
 }

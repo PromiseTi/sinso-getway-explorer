@@ -3,6 +3,7 @@ import Vue from 'vue'
 Vue.use(VueX)
 const store = new VueX.Store({
   state: {
+    address: '',
     odd1: false,
     odd2: false,
   },
@@ -12,6 +13,9 @@ const store = new VueX.Store({
     },
     modifyOdd2: (state, { val }) => {
       state.odd2 = val
+    },
+    replaceAdd: (state, { address }) => {
+      state.address = address
     },
   },
 })
