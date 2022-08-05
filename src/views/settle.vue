@@ -36,23 +36,21 @@
           </h3>
         </div>
       </div>
-      <div
-        v-if="address && objOb.SscNodeRevenue && objOb.SscNodeRevenue.length"
-      >
+      <div>
         <div
           class="minCont marlrAuto margin-bottom-xl margin-top-xl fontSize-12 backCCC padding-sm"
           v-if="!isSettlement"
         >
           <p class="flexCont margin-bottom-sm">
             <span>Node Adress</span>
-            <span>{{ address || '-' }}</span>
+            <span>{{ address | filNum(this) }}</span>
           </p>
           <h2 class="margin-bottom-xs">BSC(Test chain)</h2>
           <p class="flexCont margin-bottom-sm">
             <span>Total Node Revenue</span>
             <span>
               <span class="margin-right">
-                {{ objOb.BscNodeRevenue || '-' }}</span
+                {{ objOb.BscNodeRevenue | filNum(this) }}</span
               >TSINSO</span
             >
           </p>
@@ -61,14 +59,14 @@
             <span>Test chain</span>
             <span>
               <span class="margin-right">
-                {{ objOb.SscNodeRevenue || '-' }}</span
+                {{ objOb.SscNodeRevenue | filNum(this) }}</span
               >TSINSO</span
             >
           </p>
           <p class="flexCont margin-bottom-sm">
             <span>Total</span>
             <span>
-              <span class="margin-right"> {{ objOb.Total || '-' }}</span
+              <span class="margin-right"> {{ objOb.Total | filNum(this) }}</span
               >TSINSO</span
             >
           </p>
@@ -76,7 +74,7 @@
             <span>Total settlement</span>
             <span>
               <span class="margin-right">
-                {{ objOb.TotalSettlement || '-' }}</span
+                {{ objOb.TotalSettlement | filNum(this) }}</span
               >TSINSO</span
             >
           </p>
@@ -142,13 +140,13 @@
         <div class="minCont marlrAuto margin-top-xl fontSize-12" v-else>
           <p class="flexCont">
             <span>Node Adress</span>
-            <span>{{ address || '-' }}</span>
+            <span>{{ address | filNum(this) }}</span>
           </p>
           <p class="flexCont addition">
             <span>Total settlement</span>
             <span>
               <span class="margin-right">
-                {{ objOb.TotalSettlement || '-' }}</span
+                {{ objOb.TotalSettlement | filNum(this) }}</span
               >TSINSO</span
             >
           </p>
@@ -267,8 +265,10 @@ import api from '@/api/index'
 export default {
   data() {
     return {
+      that: this,
       address: '',
       objOb: {},
+      loadNum: 0, //  0 loading  1 succ  2 err
       isSettlement: false, // 是否是结算完成后的状态
       settleStatus: false, // el-dialog
       inSuccess: 0, // 1 suress 2 loading...   0 error
@@ -298,6 +298,17 @@ export default {
       ],
     }
   },
+  filters: {
+    filNum(val, that) {
+      if (val) {
+        return val
+      } else if (that.loadNum == 0) {
+        return 'loading...'
+      } else if (that.loadNum == 2) {
+        return 'error'
+      }
+    },
+  },
   components: { TopBar },
   methods: {
     init() {
@@ -309,7 +320,12 @@ export default {
         .then((res) => {
           if (res.error_code == 0) {
             this.objOb = res.data
+          } else {
+            this.loadNum = 2
           }
+        })
+        .catch(() => {
+          this.loadNum = 2
         })
     },
     async openDialog() {
@@ -320,7 +336,7 @@ export default {
       }
       if (BscSettlementStatus == 0) {
         await this.chainCont(1)
-        this.hxi2 = await this.sscTransaction()
+        this.hxi2 = await this.bscTransaction()
       }
       // eslint-disable-next-line no-unused-vars
       let url
@@ -351,7 +367,6 @@ export default {
         .encodeABI()
       var tx = {
         from: this.$store.state.address,
-        gas: '40000',
         to: process.env.VUE_APP_SOURCE_SSC_ADDRESS,
         data: encode,
       }
@@ -370,7 +385,6 @@ export default {
         .encodeABI()
       var tx = {
         from: this.$store.state.address,
-        gas: '40000',
         to: process.env.VUE_APP_SOURCE_BSC_ADDRESS,
         data: encode,
       }
