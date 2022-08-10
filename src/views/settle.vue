@@ -86,6 +86,7 @@
                 objOb.BscSettlementStatus == 0 || objOb.SscSettlementStatus == 0
               "
               @click="openDialog"
+              :loading="isLoading"
               type="primary"
               round
               >Settle accounts
@@ -268,6 +269,7 @@ export default {
       that: this,
       address: '',
       objOb: {},
+      isLoading: false,
       loadNum: 0, //  0 loading  1 succ  2 err
       isSettlement: false, // 是否是结算完成后的状态
       settleStatus: false, // el-dialog
@@ -330,6 +332,7 @@ export default {
     },
     async openDialog() {
       let { SscSettlementStatus, BscSettlementStatus } = this.objOb
+      this.isLoading = true
       if (SscSettlementStatus == 0) {
         await this.chainCont()
         this.hxi1 = await this.sscTransaction()
@@ -354,12 +357,11 @@ export default {
       let { status: status1 = '0x0' } = await this.getReceipt(hxHx, url)
       console.log(status1)
       if (status1 == '0x1') {
-        // console.log('调用合约成功')
         this.inSuccess = 1
       } else {
-        // console.log('调用合约失败')
         this.inSuccess = 0
       }
+      this.isLoading = false
     },
     async sscTransaction() {
       let encode = await this.getSscInstance()
@@ -376,6 +378,7 @@ export default {
           params: [tx],
         })
       } catch (err) {
+        this.isLoading = false
         throw new Error(err)
       }
     },
@@ -394,6 +397,7 @@ export default {
           params: [tx],
         })
       } catch (err) {
+        this.isLoading = false
         throw new Error(err)
       }
     },
