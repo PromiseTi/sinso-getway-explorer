@@ -56,7 +56,7 @@
           </p>
           <h2 class="margin-bottom-xs">SSC(Test chain)</h2>
           <p class="flexCont margin-bottom-sm">
-            <span>Test chain</span>
+            <span>Total Node Revenue</span>
             <span>
               <span class="margin-right">
                 {{ objOb.SscNodeRevenue | filNum(this) }}</span
@@ -302,7 +302,9 @@ export default {
   },
   filters: {
     filNum(val, that) {
-      if (val) {
+      if (!that.$store.state.address) {
+        return ''
+      } else if (val) {
         return val
       } else if (that.loadNum == 0) {
         return 'loading...'
@@ -314,6 +316,7 @@ export default {
   components: { TopBar },
   methods: {
     init() {
+      this.loadNum = 0
       this.objOb = {}
       api
         .$nodeRevenueInfo({

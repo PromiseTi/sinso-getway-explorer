@@ -217,7 +217,7 @@ export default {
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', function (accounts) {
         let account = accounts[0]
-        that.$store.commit('replaceAdd', { address: accounts })
+        that.$store.commit('replaceAdd', { address: account })
         window.textText = account
         that.textText = account
         that.$emit('onneCli')
