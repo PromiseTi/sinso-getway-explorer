@@ -54,6 +54,61 @@
         save
       </el-button>
     </el-dialog>
+    <!-- Tips -->
+    <el-dialog
+      :visible.sync="isNotice"
+      width="1023px"
+      center
+      :show-close="false"
+      class="dialogs"
+    >
+      <div class="notice">
+        <div class="content colorText align-center flex flex-direction">
+          <img
+            class="noticeIcon"
+            src="../assets/img-gonggao.png"
+            alt=""
+            srcset=""
+          />
+          <h2
+            class="fontSize-20 margin-top-sm margin-bottom fontBlod colorTitle"
+          >
+            Notice
+          </h2>
+          <div class="lineHeight fontSize-14">
+            <p>
+              The second phase of the sinso test network is about to end. We
+              thank you for your participation in the construction of the sinso
+              ecosystem and your efforts for the sinso storage network. After
+              the first stage of bsc test chain and the second stage of SSC
+              (sinso smart chain), the sinso test network will enter the third
+              stage of AMSTAR test network. In the third stage, the new sinso
+              mining process will begin, and we have introduced a mining process
+              that is more suitable for public participation. The reward in the
+              third stage is more generous. I hope you can continue to
+              participate in the third public beta of the sinso test network.
+            </p>
+          </div>
+          <p class="margin-top margin-bottom-sm">Old network stop countdown</p>
+          <div class="timeRender">
+            <span class="buleCircle">{{ time.days || '00' }}</span>
+            <span>days</span>
+            <span class="buleCircle">{{ time.hours || '00' }}</span>
+            <span>hours</span>
+            <span class="buleCircle">{{ time.mins || '00' }}</span>
+            <span>mins</span>
+            <span class="buleCircle">{{ time.seconds || '00' }}</span>
+            <span>seconds</span>
+          </div>
+          <el-button
+            type="primary"
+            class="margin-top-xl buttWid"
+            @click="isNotice = false"
+            >Confirm</el-button
+          >
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -61,12 +116,14 @@
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import TopBar from '../components/topBar'
+var dayjs = require('dayjs')
 export default {
   name: '',
   components: { TopBar },
   props: {},
   data() {
     return {
+      isNotice: false,
       time: { days: 0, hours: 0, mins: 0, seconds: 0 },
       poolInfo: '',
       isTimes: false,
@@ -91,6 +148,12 @@ export default {
       if (value) {
         this.isTimes = false
         this.isLoading = false
+        if (!sessionStorage.getItem('isNotice')) {
+          this.isInst = 1
+          this.setIng()
+          this.isNotice = true
+          sessionStorage.setItem('isNotice', true)
+        }
       }
     },
   },
@@ -138,6 +201,31 @@ export default {
       )
       this.web3 = web3
       this.getPoolInfo()
+    },
+    setIng() {
+      this.times = setInterval(
+        () => {
+          this.isInst = 0
+          const date2 = dayjs(dayjs().format('YYYY-MM-DD HH:mm:ss'))
+          const date1 = dayjs('2022-12-09 24:00:00')
+          let second = date1.diff(date2, 'second') // 20214000000 default milliseconds
+          if (second > 0) {
+            let days = Math.floor(second / 86400)
+            let hours = Math.floor((second % 86400) / 3600)
+            let mins = Math.floor(((second % 86400) % 3600) / 60)
+            let seconds = Math.floor(((second % 86400) % 3600) % 60)
+            days = days < 10 ? '0' + days : days
+            hours = hours < 10 ? '0' + hours : hours
+            mins = mins < 10 ? '0' + mins : mins
+            seconds = seconds < 10 ? '0' + seconds : seconds
+            this.time = { days, hours, mins, seconds }
+          } else {
+            this.time = { days: '00', hours: '00', mins: '00', seconds: '00' }
+            setInterval(this.times)
+          }
+        },
+        this.isInst == 1 ? 0 : 1000
+      )
     },
   },
   created() {
