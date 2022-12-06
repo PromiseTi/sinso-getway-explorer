@@ -162,8 +162,8 @@ export default {
       if (!this.mineInstance) {
         let web3 = this.web3
         this.mineInstance = new web3.eth.Contract(
-          JSON.parse(process.env.VUE_APP_NEW_MINE_CONTRACT_ABI),
-          process.env.VUE_APP_NEW_MINE_CONTRACT_ADDRESS
+          JSON.parse(process.env.VUE_APP_OLD_MINE_CONTRACT_ABI),
+          process.env.VUE_APP_OLD_MINE_CONTRACT_ADDRESS
         )
       }
       return this.mineInstance
@@ -171,6 +171,7 @@ export default {
     async getPoolInfo() {
       this.timing()
       let poolInfo = await this.getMineInstance().methods.getPoolInfo().call()
+      console.log(poolInfo)
       this.list1[0].uv = poolInfo[0]
       this.list1[1].uv = poolInfo[1]
       this.list1[2].uv = poolInfo[2]
@@ -197,7 +198,7 @@ export default {
     },
     switchCli() {
       let web3 = new Web3(
-        new Web3.providers.HttpProvider(process.env.VUE_APP_TARGET_CHAIN_URL)
+        new Web3.providers.HttpProvider(process.env.VUE_APP_RAW_URL)
       )
       this.web3 = web3
       this.getPoolInfo()
