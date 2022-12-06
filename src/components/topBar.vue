@@ -56,13 +56,6 @@
         ><el-button class="texts fontsix" type="text" @click="goBacks"
           >Docs</el-button
         >
-        <el-button
-          type="text"
-          class="fontsix"
-          @click="goHome('settle')"
-          :class="$route.name === 'settle' ? 'ColoTexts' : 'texts'"
-          >Settle</el-button
-        >
         <div class="flex align-center">
           <div
             class="flex align-center justify-around pointer margin-right-xs souCont"
